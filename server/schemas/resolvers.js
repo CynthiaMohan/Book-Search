@@ -1,19 +1,26 @@
 const { AuthenticationError } = require('apollo-server-express');
+const { sign } = require('jsonwebtoken');
 const { User, Book } = require('../models');
+const { signToken } = require('../utils/auth');
 
 const resolvers = {
     Query: {
         //get all USers
-        me: async () => {
-            const usersList = await User.find()
-                .select('-__v -password')
-                .populate('books');
+        me: async (parent, args, context) => {
+            if (context.user) {
+                const usersList = await User.findOne({ _id: context.user._id })
+                    .select('-__v -password')
+                    .populate('books');
+                return usersList;
+            }
+            throw new AuthenticationError('Not Logged in. Please Log in to continue.');
         }
     },
     Mutation: {
         addUser: async (parent, args) => {
             const newUser = await User.create(args);
-            return newUser;
+            const token = signToken(user);
+            return { token, newUser };
         },
         login: async (parent, { email, password }) => {
             const user = await User.findOne({ email });
@@ -24,7 +31,8 @@ const resolvers = {
             if (!correctPw) {
                 throw new AuthenticationError('Incorrect password');
             }
-            return user;
+            const token = signToken(user);
+            return { token, user };
         },
         saveBook: async () => {
 

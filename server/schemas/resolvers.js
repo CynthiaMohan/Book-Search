@@ -5,7 +5,7 @@ const { signToken } = require('../utils/auth');
 
 const resolvers = {
     Query: {
-        //get all USers
+        //get all User
         me: async (parent, args, context) => {
             if (context.user) {
                 const usersList = await User.findOne({ _id: context.user._id })
@@ -34,11 +34,27 @@ const resolvers = {
             const token = signToken(user);
             return { token, user };
         },
-        saveBook: async () => {
-
+        saveBook: async (parent, args, context) => {
+            if (context.user) {
+                const updated = await User.findByIdAndUpdate(
+                    { _id: context.user._id },
+                    { $addToSet: { savedBooks: args.input } },
+                    { new: true }
+                );
+                return updated;
+            }
+            throw new AuthenticationError('You are Not logged in. Please Log in to continue');
         },
         removeBook: async () => {
-
+            if (context.user) {
+                const updated = await User.findOneAndUpdate(
+                    { _id: context.user._id },
+                    { $pull: { savedBooks: args.bookId } },
+                    { new: true }
+                );
+                return updated;
+            }
+            throw new AuthenticationError('You are Not logged in. Please Log in to continue');
         }
     }
 }

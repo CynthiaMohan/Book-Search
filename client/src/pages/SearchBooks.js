@@ -66,6 +66,7 @@ const SearchBooks = () => {
     const token = Auth.loggedIn() ? Auth.getToken() : null;
 
     if (!token) {
+      console.log("No token handle save book");
       return false;
     }
 

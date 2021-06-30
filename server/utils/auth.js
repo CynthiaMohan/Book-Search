@@ -8,9 +8,10 @@ module.exports = {
   // function for our authenticated routes
   authMiddleware: function ({ req }) {
     // allows token to be sent via  req.query or headers
+    console.log(req);
     let token = req.body.token || req.query.token || req.headers.authorization;
 
-    console.log("hi");
+    console.log(req.body.token);
 
     // ["Bearer", "<tokenvalue>"]
     if (req.headers.authorization) {
@@ -25,6 +26,7 @@ module.exports = {
 
     // verify token and get user data out of it
     try {
+      console.log("inside try block server auth");
       const { data } = jwt.verify(token, secret, { maxAge: expiration });
       req.user = data;
     } catch {
